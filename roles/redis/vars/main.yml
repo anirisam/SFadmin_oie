@@ -1,0 +1,9 @@
+---
+# defaults file for install-redis
+
+bind: '0.0.0.0'
+port: '6379'
+requirepass: '111'
+PASSWORD: '111'
+remote_path: /usr/local/src/
+redis_version: redis-7.0.11
