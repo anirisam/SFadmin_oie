@@ -1,0 +1,109 @@
+---
+  - name: copy archive to host
+    copy:
+      src: redis-7.0.11.tar.gz
+      dest: /tmp/
+
+  - name: Unarchive redis-server
+    unarchive:
+     remote_src: yes
+     src: "/tmp/redis-7.0.11.tar.gz"
+     dest: "{{ remote_path }}"
+
+  - name: Add redis group&user
+    group:
+     name: redis
+     state: present
+  - user:
+     name: redis
+     group: redis
+     home: /opt/redis
+     shell: /bin/false
+
+  - name: Create dir redis
+    file: 
+     path: "{{ item.directory }}"
+     state: directory
+     mode: '755'
+     owner: redis
+     recurse: yes
+    with_items:
+     - { directory: '/etc/redis' }
+     - { directory: '/opt/redis' }
+
+###################### INSTALL REDIS SERVER ###########################
+
+#  - name: Install package
+#    zypper: 
+#     name: "{{ item.name }}"
+#     state: present 
+#    with_items: 
+#     - { name: gcc }
+#     - { name: tcl }
+#     - { name: make }
+
+  - name: Install redis on centos
+    ansible.builtin.yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+       - gcc
+       - tcl
+       - make
+    when:
+      ansible_os_family == "RedHat"
+
+
+  - name: install redis on ubuntu
+    ansible.builtin.apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+       - gcc
+       - tcl
+       - make
+    when:
+      ansible_os_family == "Debian" 
+
+
+  - name: Make redis server 
+    command: make PREFIX=/opt/redis install
+    args:
+     chdir: "{{ remote_path }}{{ redis_version }}"
+
+  - name: Create config file for redis-server
+    template:
+     src: "{{ item.src }}"
+     dest: "{{ item.dest }}"
+    with_items:
+      - { src: 'redis-server.conf.j2', dest: '/etc/redis/redis-server.conf' }
+
+  - name: Create unit for redis-server
+    template:
+     src: "{{ item.src }}"
+     dest: "{{ item.dest }}"
+    with_items:
+     - { src: 'redis-server.service.j2', dest: '/etc/systemd/system/redis-server.service' }
+ 
+  - name: Started redis-server
+    systemd: 
+     daemon_reload: yes
+     state: started
+     enabled: true
+     name: redis-server
+ 
+  - name: ping redis
+    command: /opt/redis/bin/redis-cli -a {{ PASSWORD }} ping
+    register: ping_result  
+  - debug:
+     msg: "{{ ping_result.stdout == 'PONG' }}"
+
+  - name: Redis-server version
+    command:
+     cmd: /opt/redis/bin/redis-server -v | awk '{print$3}'
+    register: version
+  - debug: msg="Установлена версия '{{ version.stdout }}'"
+
+  - name: Redis-cli
+    command: cp /opt/redis/bin/redis-cli /usr/local/bin/
+    
