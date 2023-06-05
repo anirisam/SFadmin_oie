@@ -1,0 +1,14 @@
+---
+- name: Install php
+  ansible.builtin.apt:
+    name: php
+    state: latest
+  when:
+    ansible_os_family == "Debian"
+
+- name: Install php-fpm
+  ansible.builtin.apt:
+    name: php-fpm
+    state: latest
+  when:
+    ansible_os_family == "Debian"

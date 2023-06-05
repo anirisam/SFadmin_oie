@@ -1,0 +1,7 @@
+- name: install docker in centos
+  include: centos_docker_install.yml
+  when: ansible_os_family == "RedHat"
+
+- name: install docker in ubuntu
+  include: ubuntu_docker_install.yml
+  when: ansible_os_family == "Debian"

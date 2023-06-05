@@ -1,0 +1,31 @@
+---
+  - name: install openvpn on centos
+    ansible.builtin.yum:
+      name: openvpn
+      state: latest
+    when:
+      ansible_os_family == "RedHat"
+
+  - name: install openvpn on ubuntu
+    ansible.builtin.apt:
+      name: openvpn
+      state: latest
+    when:
+      ansible_os_family == "Debian" 
+
+  - name: unarchive client conf
+    unarchive:
+     src: clientvpn.tar.gz
+     dest: /etc/openvpn/
+     extra_opts: 
+       - --strip-components=1
+
+  - name: create log dir
+    file: path=/var/log/openvpn
+          state=directory
+
+  - name: start openvpn
+    systemd: 
+     state: started
+     enabled: false
+     name: openvpn@clientvpn

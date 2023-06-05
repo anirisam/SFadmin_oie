@@ -1,0 +1,7 @@
+---
+- hosts: debian
+  become: true
+  remote_user: anirisam
+  gather_facts: true
+  roles:
+    - nginx

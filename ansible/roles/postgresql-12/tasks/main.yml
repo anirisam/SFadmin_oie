@@ -1,0 +1,26 @@
+---
+  - name: Copy postgresql12 repo to centos
+    copy:
+      src: pgdg-redhat-repo-latest.noarch.rpm
+      dest: /tmp/
+
+  - name: Install PostgreSQL
+    shell: |
+            rpm -Uvh /tmp/pgdg-redhat-repo-latest.noarch.rpm
+            yum clean all
+
+  - name: Install postgresql12-server on centos
+    ansible.builtin.yum:
+      name: postgresql12-server
+      state: latest
+
+  - name: Initialize PostgreSQL
+    shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
+    ignore_errors: true
+
+  - name: Started postgresql-12
+    systemd: 
+      daemon_reload: yes
+      state: started
+      enabled: true
+      name: postgresql-12

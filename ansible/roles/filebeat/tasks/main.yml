@@ -1,0 +1,20 @@
+---
+  - name: copy filebeat
+    copy:
+      src: filebeat-8.6.2-amd64.deb
+      dest: /tmp/
+
+  - name: install filebeat
+    ansible.builtin.apt:
+      deb: /tmp/filebeat-8.6.2-amd64.deb
+    when:
+      ansible_os_family == "Debian"
+
+  - name: enable and start filebeat service
+    systemd:
+      name: filebeat
+      state: started
+      enabled: yes
+
+  - name: delete rpm
+    shell: rm -f /tmp/filebeat-8.6.2-amd64.deb

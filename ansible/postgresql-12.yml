@@ -1,0 +1,8 @@
+---
+- hosts: centos
+  become: true
+  remote_user: anirisam
+  gather_facts: yes
+  roles:
+    - postgresql-12
+
